@@ -61,74 +61,72 @@
         og senere kan denne delen kobles til AI.
       </p>
 
-      <textarea
-        id="custom-behavior"
-        placeholder="Eksempel: Personen gir masse oppmerksomhet i starten, men blir kald når jeg setter grenser."
-      ></textarea>
+      <textarea id="custom-behavior"
+        placeholder="Eksempel: Personen gir masse oppmerksomhet i starten, men blir kald når jeg setter grenser."></textarea>
 
       <button id="custom-analyze-btn" class="primary-btn">Analyser tekst</button>
     </section>
 
-<section class="result-section">
-  <h2>Resultat</h2>
+    <section class="result-section">
+      <h2>Resultat</h2>
 
-  <div class="score-box">
-    <p class="score-label">Score</p>
-    <p id="score" class="score">0</p>
-  </div>
+      <div class="score-box">
+        <p class="score-label">Score</p>
+        <p id="score" class="score">0</p>
+      </div>
 
-  <div id="result-card" class="result-card">
-    <h3>Ingen handlinger valgt</h3>
-    <p>Velg noen handlinger eller skriv inn en egen situasjon for å få en vurdering.</p>
-  </div>
+      <div id="result-card" class="result-card">
+        <h3>Ingen handlinger valgt</h3>
+        <p>Velg noen handlinger eller skriv inn en egen situasjon for å få en vurdering.</p>
+      </div>
 
-  <div class="summary-grid">
-    <div>
-      <span id="green-count">0</span>
-      <p>Green</p>
-    </div>
+      <div class="summary-grid">
+        <div>
+          <span id="green-count">0</span>
+          <p>Green</p>
+        </div>
 
-    <div>
-      <span id="yellow-count">0</span>
-      <p>Yellow</p>
-    </div>
+        <div>
+          <span id="yellow-count">0</span>
+          <p>Yellow</p>
+        </div>
 
-    <div>
-      <span id="red-count">0</span>
-      <p>Red</p>
-    </div>
+        <div>
+          <span id="red-count">0</span>
+          <p>Red</p>
+        </div>
 
-    <div>
-      <span id="ick-count">0</span>
-      <p>Icks</p>
-    </div>
+        <div>
+          <span id="ick-count">0</span>
+          <p>Icks</p>
+        </div>
 
-    <div>
-      <span id="minimum-count">0</span>
-      <p>Minimum</p>
-    </div>
-  </div>
+        <div>
+          <span id="minimum-count">0</span>
+          <p>Minimum</p>
+        </div>
+      </div>
 
-  <button id="clear-btn" class="secondary-btn">Nullstill valg</button>
-</section>
+      <button id="clear-btn" class="secondary-btn">Nullstill valg</button>
+    </section>
 
-<section class="filter-section">
-  <input type="text" id="search" placeholder="Søk etter handling..." />
+    <section class="filter-section">
+      <input type="text" id="search" placeholder="Søk etter handling..." />
 
-  <select id="category-filter">
-    <option value="all">Alle kategorier</option>
-    <option value="green">Green flags</option>
-    <option value="yellow">Yellow flags</option>
-    <option value="red">Red flags</option>
-    <option value="ick">Icks</option>
-    <option value="minimum">Bare minimum</option>
-  </select>
-</section>
+      <select id="category-filter">
+        <option value="all">Alle kategorier</option>
+        <option value="green">Green flags</option>
+        <option value="yellow">Yellow flags</option>
+        <option value="red">Red flags</option>
+        <option value="ick">Icks</option>
+        <option value="minimum">Bare minimum</option>
+      </select>
+    </section>
 
-<section class="flags-section">
-  <h2>Velg handlinger</h2>
-  <div id="flag-list" class="flag-list"></div>
-</section>
+    <section class="flags-section">
+      <h2>Velg handlinger</h2>
+      <div id="flag-list" class="flag-list"></div>
+    </section>
   </main>
 
   <script src="js/data.js"></script>
