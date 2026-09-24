@@ -15,9 +15,14 @@ import org.springframework.web.bind.annotation.RestController;
 public class AnalysisController {
 
     private final AnalysisService analysisService;
+    private final AiAnalysisService aiAnalysisService;
 
-    public AnalysisController(AnalysisService analysisService) {
+    public AnalysisController(
+            AnalysisService analysisService,
+            AiAnalysisService aiAnalysisService
+    ) {
         this.analysisService = analysisService;
+        this.aiAnalysisService = aiAnalysisService;
     }
 
     @GetMapping("/health")
@@ -36,7 +41,7 @@ public class AnalysisController {
     public AnalyzeResponse aiAnalyze(@RequestBody Map<String, Object> body) {
         AnalyzeRequest request = createAnalyzeRequest(body);
 
-        return analysisService.analyze(request);
+        return aiAnalysisService.analyze(request);
     }
 
     private AnalyzeRequest createAnalyzeRequest(Map<String, Object> body) {
