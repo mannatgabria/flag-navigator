@@ -1,10 +1,18 @@
 HELP.md
+
+# Maven / Java build files
 target/
+backend/target/
+*.class
+
+# Maven wrapper
 .mvn/wrapper/maven-wrapper.jar
+
+# Keep target folders inside src if they ever exist
 !**/src/main/**/target/
 !**/src/test/**/target/
 
-### STS ###
+# STS
 .apt_generated
 .classpath
 .factorypath
@@ -13,13 +21,13 @@ target/
 .springBeans
 .sts4-cache
 
-### IntelliJ IDEA ###
-.idea
+# IntelliJ IDEA
+.idea/
 *.iws
 *.iml
 *.ipr
 
-### NetBeans ###
+# NetBeans
 /nbproject/private/
 /nbbuild/
 /dist/
@@ -29,5 +37,20 @@ build/
 !**/src/main/**/build/
 !**/src/test/**/build/
 
-### VS Code ###
+# VS Code
 .vscode/
+
+# Environment variables / secrets
+.env
+.env.local
+.env.development
+.env.production
+backend/.env
+backend/.env.local
+
+# Logs
+*.log
+
+# System files
+.DS_Store
+Thumbs.db
