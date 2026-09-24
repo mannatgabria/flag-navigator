@@ -1,13 +1,13 @@
 package com.mannat.flag_navigator_backend;
 
+import java.util.Map;
+
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-
-import java.util.Map;
 
 @RestController
 @RequestMapping("/api")
@@ -27,12 +27,23 @@ public class AnalysisController {
 
     @PostMapping("/analyze")
     public AnalyzeResponse analyze(@RequestBody Map<String, Object> body) {
+        AnalyzeRequest request = createAnalyzeRequest(body);
+
+        return analysisService.analyze(request);
+    }
+
+    @PostMapping("/ai-analyze")
+    public AnalyzeResponse aiAnalyze(@RequestBody Map<String, Object> body) {
+        AnalyzeRequest request = createAnalyzeRequest(body);
+
+        return analysisService.analyze(request);
+    }
+
+    private AnalyzeRequest createAnalyzeRequest(Map<String, Object> body) {
         String text = String.valueOf(body.getOrDefault("text", ""));
         String context = String.valueOf(body.getOrDefault("context", "dating"));
         String person = String.valueOf(body.getOrDefault("person", "not-relevant"));
 
-        AnalyzeRequest request = new AnalyzeRequest(text, context, person);
-
-        return analysisService.analyze(request);
+        return new AnalyzeRequest(text, context, person);
     }
 }
