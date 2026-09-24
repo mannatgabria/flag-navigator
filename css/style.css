@@ -423,4 +423,9 @@ textarea {
   .summary-grid {
     grid-template-columns: repeat(2, 1fr);
   }
+
+  .primary-btn:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+  }
 }

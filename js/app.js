@@ -244,46 +244,55 @@ function updateResult() {
 }
 
 async function analyzeCustomText() {
-    const text = customBehaviorInput.value.trim();
+  const text = customBehaviorInput.value.trim();
 
-    if (!text) {
-        resultCard.innerHTML = `
+  if (!text) {
+    resultCard.innerHTML = `
       <h3>Skriv inn en situasjon først</h3>
       <p>Du må skrive noe i tekstfeltet før nettsiden kan gjøre en vurdering.</p>
     `;
-        return;
+    return;
+  }
+
+  resultCard.innerHTML = `
+    <h3>Analyserer...</h3>
+    <p>Backend vurderer situasjonen din.</p>
+  `;
+
+  scoreElement.textContent = "...";
+  customAnalyzeButton.disabled = true;
+  customAnalyzeButton.textContent = "Analyserer...";
+
+  const requestBody = {
+    text: text,
+    context: contextSelect.value,
+    person: personSelect.value
+  };
+
+  try {
+    const response = await fetch("http://localhost:8080/api/analyze", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify(requestBody)
+    });
+
+    if (!response.ok) {
+      throw new Error("Backend svarte med en feil.");
     }
 
-    const requestBody = {
-        text: text,
-        context: contextSelect.value,
-        person: personSelect.value
-    };
+    const analysis = await response.json();
 
-    try {
-        const response = await fetch("http://localhost:8080/api/analyze", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify(requestBody)
-        });
+    scoreElement.textContent = analysis.score;
 
-        if (!response.ok) {
-            throw new Error("Backend svarte med en feil.");
-        }
+    greenCount.textContent = analysis.category === "green" ? 1 : 0;
+    yellowCount.textContent = analysis.category === "yellow" ? 1 : 0;
+    redCount.textContent = analysis.category === "red" ? 1 : 0;
+    ickCount.textContent = analysis.category === "ick" ? 1 : 0;
+    minimumCount.textContent = analysis.category === "minimum" ? 1 : 0;
 
-        const analysis = await response.json();
-
-        scoreElement.textContent = analysis.score;
-
-        greenCount.textContent = analysis.category === "green" ? 1 : 0;
-        yellowCount.textContent = analysis.category === "yellow" ? 1 : 0;
-        redCount.textContent = analysis.category === "red" ? 1 : 0;
-        ickCount.textContent = analysis.category === "ick" ? 1 : 0;
-        minimumCount.textContent = analysis.category === "minimum" ? 1 : 0;
-
-        resultCard.innerHTML = `
+    resultCard.innerHTML = `
       <h3>${analysis.label}</h3>
       <p><strong>Kategori:</strong> ${analysis.category}</p>
       <p><strong>Alvorlighet:</strong> ${analysis.severity}</p>
@@ -292,13 +301,18 @@ async function analyzeCustomText() {
       <p><strong>Matchet tema:</strong> ${analysis.matchedThemes.join(", ") || "Ingen tydelig match"}</p>
       <p class="ai-note">Dette resultatet kommer fra Spring Boot-backend. Senere kan denne delen kobles til AI.</p>
     `;
-    } catch (error) {
-        resultCard.innerHTML = `
+  } catch (error) {
+    scoreElement.textContent = "0";
+
+    resultCard.innerHTML = `
       <h3>Kunne ikke koble til backend</h3>
       <p>Sjekk at Spring Boot kjører på http://localhost:8080.</p>
       <p class="ai-note">${error.message}</p>
     `;
-    }
+  } finally {
+    customAnalyzeButton.disabled = false;
+    customAnalyzeButton.textContent = "Analyser tekst";
+  }
 }
 
 function clearSelections() {
