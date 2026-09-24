@@ -231,103 +231,62 @@ function updateResult() {
   `;
 }
 
-function analyzeCustomText() {
-    const text = customBehaviorInput.value.trim().toLowerCase();
+async function analyzeCustomText() {
+  const text = customBehaviorInput.value.trim();
 
-    if (!text) {
-        resultCard.innerHTML = `
+  if (!text) {
+    resultCard.innerHTML = `
       <h3>Skriv inn en situasjon først</h3>
-      <p>Du må skrive noe i tekstfeltet før nettsiden kan gjøre en enkel vurdering.</p>
+      <p>Du må skrive noe i tekstfeltet før nettsiden kan gjøre en vurdering.</p>
     `;
-        return;
+    return;
+  }
+
+  const requestBody = {
+    text: text,
+    context: contextSelect.value,
+    person: personSelect.value
+  };
+
+  try {
+    const response = await fetch("http://localhost:8080/api/analyze", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify(requestBody)
+    });
+
+    if (!response.ok) {
+      throw new Error("Backend svarte med en feil.");
     }
 
-    const matchedFlags = [];
+    const analysis = await response.json();
 
-    function addMatch(id) {
-        const flag = flagData.find((item) => item.id === id);
+    scoreElement.textContent = analysis.score;
 
-        if (flag && !matchedFlags.some((item) => item.id === id)) {
-            matchedFlags.push(flag);
-        }
-    }
-
-    if (text.includes("love bombing") || text.includes("veldig intens") || text.includes("masse oppmerksomhet") || text.includes("for fort")) {
-        addMatch(2);
-    }
-
-    if (text.includes("kontroll") || text.includes("kontrollerer") || text.includes("bestemmer hvem") || text.includes("hvem jeg snakker med")) {
-        addMatch(17);
-    }
-
-    if (text.includes("presser") || text.includes("press") || text.includes("vil ikke") || text.includes("sagt nei")) {
-        addMatch(18);
-    }
-
-    if (text.includes("redd") || text.includes("reaksjonen") || text.includes("går på eggeskall")) {
-        addMatch(20);
-    }
-
-    if (text.includes("mixed signals") || text.includes("varm og kald") || text.includes("kald") || text.includes("fjern")) {
-        addMatch(10);
-    }
-
-    if (text.includes("svarer sent") || text.includes("svarer bare") || text.includes("ikke svarer") || text.includes("ghoster")) {
-        addMatch(21);
-    }
-
-    if (text.includes("skjuler") || text.includes("hemmelig") || text.includes("viser meg ikke")) {
-        addMatch(14);
-    }
-
-    if (text.includes("respekterer grensene") || text.includes("lytter når jeg sier nei")) {
-        addMatch(3);
-    }
-
-    if (text.includes("kommuniserer tydelig") || text.includes("ærlig om intensjoner")) {
-        addMatch(4);
-    }
-
-    if (text.includes("princess treatment") || text.includes("ekstra omtanke") || text.includes("romantisk innsats")) {
-        addMatch(1);
-    }
-
-    if (matchedFlags.length === 0) {
-        resultCard.innerHTML = `
-      <h3>Ingen tydelig match funnet</h3>
-      <p>
-        Teksten din matcher ikke tydelig med reglene i denne første versjonen.
-        Senere kan denne delen kobles til AI for å forstå fritekst bedre.
-      </p>
-      <p class="context-note">${getContextText()}</p>
-    `;
-
-        scoreElement.textContent = 0;
-        greenCount.textContent = 0;
-        yellowCount.textContent = 0;
-        redCount.textContent = 0;
-        ickCount.textContent = 0;
-        minimumCount.textContent = 0;
-        return;
-    }
-
-    const analysis = analyzeFlags(matchedFlags);
-
-    scoreElement.textContent = analysis.totalScore;
-    greenCount.textContent = analysis.counts.green;
-    yellowCount.textContent = analysis.counts.yellow;
-    redCount.textContent = analysis.counts.red;
-    ickCount.textContent = analysis.counts.ick;
-    minimumCount.textContent = analysis.counts.minimum;
+    greenCount.textContent = analysis.category === "green" ? 1 : 0;
+    yellowCount.textContent = analysis.category === "yellow" ? 1 : 0;
+    redCount.textContent = analysis.category === "red" ? 1 : 0;
+    ickCount.textContent = analysis.category === "ick" ? 1 : 0;
+    minimumCount.textContent = analysis.category === "minimum" ? 1 : 0;
 
     resultCard.innerHTML = `
-    <h3>Foreløpig tekstanalyse: ${analysis.title}</h3>
-    <p>${analysis.explanation}</p>
-    <p><strong>Matchet med:</strong> ${matchedFlags.map((flag) => flag.title).join(", ")}</p>
-    <p><strong>Hva du kan følge med på:</strong> ${analysis.advice}</p>
-    <p class="context-note">${getContextText()}</p>
-    <p class="ai-note">Dette er en enkel regelbasert analyse. Senere kan vi koble denne delen til AI.</p>
-  `;
+      <h3>${analysis.label}</h3>
+      <p><strong>Kategori:</strong> ${analysis.category}</p>
+      <p><strong>Alvorlighet:</strong> ${analysis.severity}</p>
+      <p>${analysis.explanation}</p>
+      <p><strong>Hva du kan følge med på:</strong> ${analysis.advice}</p>
+      <p><strong>Matchet tema:</strong> ${analysis.matchedThemes.join(", ") || "Ingen tydelig match"}</p>
+      <p class="ai-note">Dette resultatet kommer fra Spring Boot-backend. Senere kan denne delen kobles til AI.</p>
+    `;
+  } catch (error) {
+    resultCard.innerHTML = `
+      <h3>Kunne ikke koble til backend</h3>
+      <p>Sjekk at Spring Boot kjører på http://localhost:8080.</p>
+      <p class="ai-note">${error.message}</p>
+    `;
+  }
 }
 
 function clearSelections() {

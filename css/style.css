@@ -418,4 +418,9 @@ textarea {
   .summary-grid {
     grid-template-columns: repeat(2, 1fr);
   }
+
+  .result-section {
+  margin-bottom: 24px;
+}
+
 }
