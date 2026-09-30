@@ -1,13 +1,15 @@
 package com.mannat.flag_navigator_backend;
 
-import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
-@Component 
-@ConfigurationProperties(prefix = "openai")
+@Component
 public class OpenAiProperties {
 
+    @Value("${openai.api.key:}")
     private String apiKey;
+
+    @Value("${openai.model:gpt-5-mini}")
     private String model;
 
     public String getApiKey() {
@@ -17,8 +19,4 @@ public class OpenAiProperties {
     public String getModel() {
         return model;
     }
-    public void setModel(String model) {
-        this.model = model;
-    }
-    
 }

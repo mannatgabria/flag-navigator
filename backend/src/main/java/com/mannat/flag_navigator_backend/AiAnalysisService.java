@@ -21,12 +21,11 @@ public class AiAnalysisService {
 
     public AiAnalysisService(
             OpenAiProperties openAiProperties,
-            AnalysisService fallbackAnalysisService,
-            ObjectMapper objectMapper
+            AnalysisService fallbackAnalysisService
     ) {
         this.openAiProperties = openAiProperties;
         this.fallbackAnalysisService = fallbackAnalysisService;
-        this.objectMapper = objectMapper;
+        this.objectMapper = new ObjectMapper();
         this.httpClient = HttpClient.newHttpClient();
     }
 
@@ -50,9 +49,15 @@ public class AiAnalysisService {
                     HttpResponse.BodyHandlers.ofString()
             );
 
-            if (response.statusCode() < 200 || response.statusCode() >= 300) {
-                return fallbackResponse(request, "AI-kallet feilet. Bruker vanlig regelbasert analyse som fallback.");
-            }
+if (response.statusCode() < 200 || response.statusCode() >= 300) {
+    System.out.println("OpenAI status: " + response.statusCode());
+    System.out.println("OpenAI body: " + response.body());
+
+    return fallbackResponse(
+            request,
+            "AI-kallet feilet med status " + response.statusCode() + ". Bruker vanlig regelbasert analyse som fallback."
+    );
+}
 
             JsonNode responseJson = objectMapper.readTree(response.body());
             String outputText = extractOutputText(responseJson);
