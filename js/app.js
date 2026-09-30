@@ -270,7 +270,7 @@ async function analyzeCustomText() {
   };
 
   try {
-    const response = await fetch("http://localhost:8080/api/analyze", {
+    const response = await fetch("http://localhost:8080/api/local-ai-analyze", {
       method: "POST",
       headers: {
         "Content-Type": "application/json"

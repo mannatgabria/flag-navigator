@@ -1,13 +1,13 @@
 package com.mannat.flag_navigator_backend;
 
-import java.util.Map;
-
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api")
@@ -16,13 +16,16 @@ public class AnalysisController {
 
     private final AnalysisService analysisService;
     private final AiAnalysisService aiAnalysisService;
+    private final OllamaAnalysisService ollamaAnalysisService;
 
     public AnalysisController(
             AnalysisService analysisService,
-            AiAnalysisService aiAnalysisService
+            AiAnalysisService aiAnalysisService,
+            OllamaAnalysisService ollamaAnalysisService
     ) {
         this.analysisService = analysisService;
         this.aiAnalysisService = aiAnalysisService;
+        this.ollamaAnalysisService = ollamaAnalysisService;
     }
 
     @GetMapping("/health")
@@ -42,6 +45,13 @@ public class AnalysisController {
         AnalyzeRequest request = createAnalyzeRequest(body);
 
         return aiAnalysisService.analyze(request);
+    }
+
+    @PostMapping("/local-ai-analyze")
+    public AnalyzeResponse localAiAnalyze(@RequestBody Map<String, Object> body) {
+        AnalyzeRequest request = createAnalyzeRequest(body);
+
+        return ollamaAnalysisService.analyze(request);
     }
 
     private AnalyzeRequest createAnalyzeRequest(Map<String, Object> body) {
