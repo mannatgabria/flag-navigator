@@ -1,89 +1,125 @@
 # Flag Navigator
 
-Flag Navigator is an interactive relationship behavior analyzer that helps users reflect on dating, relationship, friendship, and situationship patterns.
+Flag Navigator is a full-stack web application that helps users reflect on relationship behaviors in dating, friendships, situationships, and relationships.
 
-Users can either select predefined behaviors or write their own situation. The website then gives a simple category-based analysis such as green flag, yellow flag, red flag, ick, or bare minimum.
+Users can either select predefined relationship behaviors or describe their own situation. The application then analyzes the behavior and categorizes it as a **Green Flag**, **Bare Minimum**, **Yellow Flag**, **Ick**, or **Red Flag**.
 
-This project is built as a fullstack web project with a JavaScript frontend and a Java Spring Boot backend.
+The project combines a JavaScript frontend with a Java Spring Boot backend and supports both traditional rule-based analysis and local AI-powered analysis using **Ollama**.
 
-## Features
+---
+
+# Features
 
 - Select predefined relationship behaviors
-- Write a custom situation for analysis
-- Categorize behavior as:
-  - Green flag
-  - Bare minimum
-  - Yellow flag
-  - Ick
-  - Red flag
-- Score-based result system
-- Context selection, such as dating, casual, situationship, relationship, and friendship
-- Spring Boot REST API for backend analysis
-- Frontend connected to backend using `fetch`
+- Write your own relationship situation
+- AI-powered text analysis using Ollama
+- Rule-based behavior analysis
+- Categories:
+  - 🟢 Green Flag
+  - ⚪ Bare Minimum
+  - 🟡 Yellow Flag
+  - 🟣 Ick
+  - 🔴 Red Flag
+- Relationship context selection:
+  - Dating
+  - Casual
+  - Situationship
+  - Relationship
+  - Friendship
+- Person selection
+- Score-based evaluation
+- REST API built with Spring Boot
+- Frontend communicates with the backend using the Fetch API
 
-## Technologies Used
+---
 
-### Frontend
+# Technologies Used
 
-- HTML
-- CSS
-- JavaScript
+## Frontend
 
-### Backend
+- HTML5
+- CSS3
+- JavaScript (ES6)
 
-- Java
+## Backend
+
+- Java 21
 - Spring Boot
 - REST API
 - Maven
 
-### Tools
+## AI
+
+- Ollama
+- Llama 3.2
+
+## Tools
 
 - Git
 - GitHub
 - VS Code
 
-## Project Structure
+---
+
+# Project Structure
 
 ```text
 flag-navigator/
+│
 ├── backend/
-│   └── src/main/java/com/mannat/flag_navigator_backend/
-│       ├── AnalysisController.java
-│       ├── AnalysisService.java
-│       ├── AnalyzeRequest.java
-│       ├── AnalyzeResponse.java
-│       └── FlagNavigatorBackendApplication.java
+│   ├── src/
+│   │   └── main/
+│   │       ├── java/
+│   │       │   └── com/
+│   │       │       └── mannat/
+│   │       │           └── flag_navigator_backend/
+│   │       │               ├── AnalysisController.java
+│   │       │               ├── AnalysisService.java
+│   │       │               ├── OllamaAnalysisService.java
+│   │       │               ├── AiAnalysisService.java
+│   │       │               ├── AnalyzeRequest.java
+│   │       │               ├── AnalyzeResponse.java
+│   │       │               ├── OpenAiProperties.java
+│   │       │               └── FlagNavigatorBackendApplication.java
+│   │       │
+│   │       └── resources/
+│   │           └── application.properties
+│   │
+│   └── pom.xml
+│
 ├── css/
 │   └── style.css
+│
 ├── js/
 │   ├── app.js
 │   └── data.js
+│
 ├── index.html
 ├── README.md
 └── .gitignore
-
-## How It Works
-
-The frontend displays predefined behavior cards and a custom text input field.
-
-When the user writes a custom situation and clicks the analyze button, the frontend sends the text, context, and selected person type to the Spring Boot backend.
-
-The backend analyzes the text using rule-based logic and returns a structured result with:
-
-- Category
-- Score
-- Severity
-- Matched themes
-- Explanation
-- Advice
-
-## API Endpoint
-
-### Analyze custom text
-
-```http
-POST /api/analyze
 ```
+
+---
+
+# How It Works
+
+## 1. User Interaction
+
+The user has two ways to use the application:
+
+- Select one or more predefined relationship behaviors.
+- Write a custom relationship situation.
+
+The user also chooses:
+
+- Relationship context
+- Person being evaluated
+
+---
+
+## 2. Frontend
+
+The JavaScript frontend collects the user input and sends it to the Spring Boot backend using the Fetch API.
 
 Example request:
 
@@ -95,27 +131,140 @@ Example request:
 }
 ```
 
-Example response:
+---
+
+## 3. Backend
+
+The Spring Boot backend exposes REST endpoints that receive the request.
+
+Depending on which endpoint is used, the backend can:
+
+- Perform rule-based analysis
+- Analyze the situation with a local AI model
+- Return a structured JSON response
+
+---
+
+## 4. AI Analysis
+
+The project currently uses **Ollama** with **Llama 3.2** to perform local AI analysis.
+
+Advantages:
+
+- Runs completely locally
+- No internet connection required after installing the model
+- No API costs
+- User data stays on the local machine
+
+The project architecture also supports using the **OpenAI API** instead of Ollama. The OpenAI implementation is already included in the backend and can easily be enabled by configuring an API key.
+
+---
+
+## 5. Response
+
+The backend returns a structured response containing:
+
+- Category
+- Score
+- Label
+- Severity
+- Confidence
+- Matched themes
+- Explanation
+- Advice
+
+The frontend displays the analysis in a user-friendly format.
+
+---
+
+# API Endpoints
+
+## Rule-Based Analysis
+
+```http
+POST /api/analyze
+```
+
+## Local AI Analysis (Ollama)
+
+```http
+POST /api/local-ai-analyze
+```
+
+## OpenAI Analysis (Optional)
+
+```http
+POST /api/ai-analyze
+```
+
+---
+
+# Example Request
+
+```json
+{
+  "text": "Han gir masse oppmerksomhet i starten, men blir kald når jeg setter grenser",
+  "context": "situationship",
+  "person": "boy"
+}
+```
+
+---
+
+# Example Response
 
 ```json
 {
   "category": "red",
   "score": 7,
-  "label": "Mulig red flag",
-  "severity": "Alvorlig",
+  "label": "Possible Red Flag",
+  "severity": "High",
   "bareMinimum": false,
-  "matchedThemes": ["love bombing", "mixed signals"],
-  "explanation": "Teksten inneholder ett eller flere tegn som kan være problematiske, spesielt hvis det skjer ofte.",
-  "advice": "Se om dette er et gjentatt mønster, og om personen respekterer grenser og kommuniserer tydelig.",
+  "matchedThemes": [
+    "love bombing",
+    "mixed signals"
+  ],
+  "explanation": "The behavior contains several warning signs that may become problematic if repeated over time.",
+  "advice": "Pay attention to whether this becomes a repeated pattern and whether your boundaries are respected.",
   "confidence": "medium"
 }
 ```
 
-## How to Run the Project
+---
 
-### 1. Start the backend
+# How to Run the Project
 
-Open a terminal in the backend folder:
+## 1. Clone the repository
+
+```bash
+git clone https://github.com/your-username/flag-navigator.git
+```
+
+---
+
+## 2. Start Ollama
+
+Install Ollama:
+
+https://ollama.com
+
+Download the model:
+
+```bash
+ollama pull llama3.2
+```
+
+Start the Ollama server:
+
+```bash
+ollama run llama3.2
+```
+
+---
+
+## 3. Start the Backend
+
+Open a terminal inside the backend folder.
 
 ```bash
 cd backend
@@ -128,27 +277,56 @@ The backend runs on:
 http://localhost:8080
 ```
 
-### 2. Start the frontend
+---
 
-Open `index.html` with Live Server in VS Code.
+## 4. Start the Frontend
 
-The frontend usually runs on:
+Open the project with VS Code and start **Live Server**.
+
+The frontend typically runs on:
 
 ```text
-http://127.0.0.1:5500/index.html
+http://127.0.0.1:5500
 ```
 
-## Disclaimer
+---
 
-This website does not give professional relationship advice or final answers.
+# OpenAI Support
 
-It is meant as a reflection tool that helps users notice possible patterns, context, and severity.
+The project includes an OpenAI service implementation in addition to Ollama.
 
-## Future Improvements
+To use OpenAI instead of Ollama:
 
-- Add AI-based analysis through the backend
-- Use OpenAI API securely from Spring Boot
+1. Create an OpenAI API key.
+2. Configure the API key as an environment variable.
+3. Send requests to:
+
+```http
+POST /api/ai-analyze
+```
+
+Ollama is used by default because it runs locally and does not require API credits.
+
+---
+
+# Disclaimer
+
+Flag Navigator is intended as a reflection tool.
+
+It does **not** provide professional psychological, legal, or relationship advice and should not be used to make important personal decisions.
+
+---
+
+# Future Improvements
+
+- Support additional AI providers (OpenAI, Gemini, Claude)
+- Improve AI prompts and response consistency
 - Store analysis history in a database
-- Add user accounts
-- Improve result explanations
-- Add more behavior categories and examples
+- User authentication and profiles
+- Favorites and saved analyses
+- Improved mobile responsiveness
+- Better UI/UX
+- Dark mode
+- More predefined relationship behaviors
+- Multi-language support
+- Deploy the application online
