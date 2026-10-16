@@ -2,149 +2,222 @@
 <html lang="no">
 
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Flag Navigator</title>
-  <link rel="stylesheet" href="css/style.css" />
+  <link rel="stylesheet" href="css/style.css">
 </head>
 
 <body>
-  <header class="header">
-    <div class="header-content">
-      <p class="eyebrow">Relationship behavior analyzer</p>
-      <h1>Flag Navigator</h1>
-      <p>
-        Velg handlinger eller skriv inn en egen situasjon, og få en enkel vurdering av om mønsteret
-        virker som green flag, yellow flag, red flag, ick eller bare minimum.
-      </p>
+  <button id="sidebarToggle" class="sidebar-toggle" onclick="toggleSidebar()" aria-label="Åpne historikk">☰</button>
+  <div id="sidebarOverlay" class="sidebar-overlay" onclick="closeSidebar()"></div>
+
+  <aside id="historySidebar" class="history-sidebar">
+    <div class="history-header">
+      <div class="history-title-row">
+        <h2 data-i18n="history">Historikk</h2>
+        <button class="sidebar-close" onclick="closeSidebar()" aria-label="Lukk historikk">×</button>
+      </div>
+      <button class="new-conversation-btn" onclick="startNewConversation()" data-i18n="newChat">+ Ny samtale</button>
     </div>
-  </header>
+    <div id="casesList" class="history-list"></div>
+  </aside>
 
-  <main class="container">
-    <div class="app-layout">
-      <aside class="cases-section">
-        <div class="cases-header">
-          <h2>My Cases</h2>
-          <button id="newCaseBtn" class="primary-btn" onclick="addNewCase()">
-            + New Case
-          </button>
+  <!-- HOVEDSIDE -->
+  <main id="homeView" class="page-view">
+    <header class="header">
+      <div class="header-content">
+        <div class="language-wrapper">
+          <button class="language-btn" data-language-toggle onclick="toggleLanguage()">English</button>
         </div>
-        <div id="casesList"></div>
-      </aside>
+        <p class="eyebrow" data-i18n="relationshipAnalyzer">Relationship behavior analyzer</p>
+        <h1>Flag Navigator</h1>
+        <p data-i18n="headerDescription">
+          Velg handlinger eller skriv inn en egen situasjon, og få en enkel vurdering av om mønsteret virker som green
+          flag, yellow flag, red flag, ick eller bare minimum.
+        </p>
+      </div>
+    </header>
+
+    <div class="container">
       <div class="main-content">
-
         <section class="intro-card">
-          <h2>Analyseinnstillinger</h2>
-
+          <p class="eyebrow" data-i18n="analysisSettings">Analyseinnstillinger</p>
+          <h2 data-i18n="beforeAnalysis">Før du analyserer</h2>
           <div class="settings-grid">
             <div class="form-group">
-              <label for="context">Situasjon</label>
+              <label for="context" data-i18n="situation">Situasjon</label>
               <select id="context">
-                <option value="dating">Dating</option>
-                <option value="casual">Casual</option>
-                <option value="situationship">Situationship</option>
-                <option value="talking">Talking stage</option>
-                <option value="relationship">Forhold</option>
-                <option value="friendship">Vennskap</option>
+                <option value="dating" data-i18n="dating">Dating</option>
+                <option value="casual" data-i18n="casual">Casual</option>
+                <option value="situationship" data-i18n="situationship">Situationship</option>
+                <option value="talking" data-i18n="talking">Talking stage</option>
+                <option value="relationship" data-i18n="relationship">Forhold</option>
+                <option value="friendship" data-i18n="friendship">Vennskap</option>
               </select>
             </div>
-
             <div class="form-group">
-              <label for="person">Personen du vurderer</label>
+              <label for="person" data-i18n="person">Personen du vurderer</label>
               <select id="person">
-                <option value="not-relevant">Ikke relevant</option>
-                <option value="boy">Gutt / mann</option>
-                <option value="girl">Jente / kvinne</option>
-                <option value="other">Annet</option>
+                <option value="not-relevant" data-i18n="notRelevant">Ikke relevant</option>
+                <option value="boy" data-i18n="man">Gutt / mann</option>
+                <option value="girl" data-i18n="woman">Jente / kvinne</option>
+                <option value="other" data-i18n="other">Annet</option>
               </select>
             </div>
           </div>
-
-          <p class="small-text">
-            Denne nettsiden gir ikke fasitsvar, men hjelper deg å se mønster,
-            alvorlighet og hva som kan være verdt å følge med på.
-          </p>
         </section>
 
         <section class="custom-section">
-          <h2>Skriv egen situasjon</h2>
-          <p class="small-text">
-            Skriv en handling eller situasjon du vil vurdere. I første versjon analyseres dette enkelt,
-            og senere kan denne delen kobles til AI.
+          <p class="eyebrow">AI</p>
+          <h2 data-i18n="writeSituation">Skriv egen situasjon</h2>
+          <p class="small-text" data-i18n="situationDescription">
+            Beskriv kort hva som har skjedd. Når du trykker Analyser tekst, opprettes en ny samtale.
           </p>
-
-          <textarea id="custom-behavior"
-            placeholder="Eksempel: Personen gir masse oppmerksomhet i starten, men blir kald når jeg setter grenser."></textarea>
-
-          <button id="custom-analyze-btn" class="primary-btn">Analyser tekst</button>
+          <textarea id="custom-behavior" data-i18n-placeholder="situationPlaceholder"
+            placeholder="For eksempel: Han svarer veldig mye noen dager, men blir plutselig kald og forsvinner..."></textarea>
+          <button id="custom-analyze-btn" class="primary-btn" data-i18n="analyzeText">Analyser tekst</button>
         </section>
 
-        <section class="result-section">
-          <h2>Resultat</h2>
-
-          <div class="score-box">
-            <p class="score-label">Score</p>
-            <p id="score" class="score">0</p>
+        <section class="main-flags-section">
+          <div class="main-flags-header">
+            <p class="eyebrow" data-i18n="explore">Utforsk</p>
+            <h2>Flags</h2>
+            <p class="small-text" data-i18n="mainFlagsDescription">
+              Velg en kategori for å se handlingene som hører til.
+            </p>
           </div>
 
-          <div id="result-card" class="result-card">
-            <h3>Ingen handlinger valgt</h3>
-            <p>Velg noen handlinger eller skriv inn en egen situasjon for å få en vurdering.</p>
+          <div class="main-flags">
+            <div class="main-flag-card green" onclick="showFlagCategory('green')">
+              <div class="flag-icon">✓</div>
+              <div>
+                <h3>Green Flags</h3>
+                <p data-i18n="greenDescription">Positive og trygge tegn.</p>
+              </div>
+            </div>
+
+            <div class="main-flag-card yellow" onclick="showFlagCategory('yellow')">
+              <div class="flag-icon">!</div>
+              <div>
+                <h3>Yellow Flags</h3>
+                <p data-i18n="yellowDescription">Tegn det kan være verdt å følge med på.</p>
+              </div>
+            </div>
+
+            <div class="main-flag-card red" onclick="showFlagCategory('red')">
+              <div class="flag-icon">!</div>
+              <div>
+                <h3>Red Flags</h3>
+                <p data-i18n="redDescription">Mer alvorlige varselsignaler.</p>
+              </div>
+            </div>
+
+            <div class="main-flag-card ick" onclick="showFlagCategory('ick')">
+              <div class="flag-icon">×</div>
+              <div>
+                <h3>Icks</h3>
+                <p data-i18n="ickDescription">Ting som kan føles avtennende.</p>
+              </div>
+            </div>
+
+            <div class="main-flag-card minimum" onclick="showFlagCategory('minimum')">
+              <div class="flag-icon">★</div>
+              <div>
+                <h3>Bare Minimum</h3>
+                <p data-i18n="minimumDescription">Grunnleggende respekt og normal innsats.</p>
+              </div>
+            </div>
           </div>
-
-          <div class="summary-grid">
-            <div>
-              <span id="green-count">0</span>
-              <p>Green</p>
-            </div>
-
-            <div>
-              <span id="yellow-count">0</span>
-              <p>Yellow</p>
-            </div>
-
-            <div>
-              <span id="red-count">0</span>
-              <p>Red</p>
-            </div>
-
-            <div>
-              <span id="ick-count">0</span>
-              <p>Icks</p>
-            </div>
-
-            <div>
-              <span id="minimum-count">0</span>
-              <p>Minimum</p>
-            </div>
-          </div>
-
-          <button id="clear-btn" class="secondary-btn">Nullstill valg</button>
         </section>
 
-        <section class="filter-section">
-          <input type="text" id="search" placeholder="Søk etter handling..." />
-
-          <select id="category-filter">
-            <option value="all">Alle kategorier</option>
-            <option value="green">Green flags</option>
-            <option value="yellow">Yellow flags</option>
-            <option value="red">Red flags</option>
-            <option value="ick">Icks</option>
-            <option value="minimum">Bare minimum</option>
-          </select>
-        </section>
-
-        <section class="flags-section">
-          <h2>Velg handlinger</h2>
+        <section id="selectedFlagContent" class="flags-section selected-flag-content">
+          <h2 id="selectedFlagTitle">Flags</h2>
+          <div class="filter-section">
+            <input id="search" type="text" data-i18n-placeholder="searchPlaceholder"
+              placeholder="Søk etter handling...">
+            <select id="category-filter">
+              <option value="all" data-i18n="allCategories">Alle kategorier</option>
+              <option value="green">Green</option>
+              <option value="yellow">Yellow</option>
+              <option value="red">Red</option>
+              <option value="ick">Ick</option>
+              <option value="minimum">Bare Minimum</option>
+            </select>
+          </div>
           <div id="flag-list" class="flag-list"></div>
+          <button id="clear-btn" class="secondary-btn" data-i18n="clear">Nullstill valg</button>
         </section>
+      </div>
+    </div>
+  </main>
+
+  <!-- SAMTALESIDE -->
+  <main id="conversationView" class="page-view conversation-page hidden">
+    <div class="conversation-page-container">
+      <section class="conversation-top">
+        <div class="conversation-top-left">
+          <button id="backToHomeButton" class="back-home-btn" data-i18n="back">← Tilbake</button>
+          <p class="eyebrow" data-i18n="currentConversation">Aktiv samtale</p>
+          <h1 id="activeCaseName">Ny analyse</h1>
+          <div id="conversationSettings" class="conversation-settings"></div>
+          <div id="conversationOverall" class="conversation-overall"></div>
+        </div>
+
+        <div class="conversation-top-right">
+          <button class="language-btn conversation-language-btn" data-language-toggle
+            onclick="toggleLanguage()">English</button>
+          <div id="conversationScores" class="conversation-scores"></div>
+        </div>
+      </section>
+
+      <section id="caseEvents" class="conversation-messages"></section>
+
+      <div class="conversation-bottom">
+        <button id="scrollToBottomBtn" class="scroll-to-bottom-btn" type="button" aria-label="Gå til bunnen">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M12 5V19"></path>
+            <path d="M6.5 13.5L12 19L17.5 13.5"></path>
+          </svg>
+        </button>
+
+        <div class="conversation-composer-wrapper">
+          <section class="conversation-composer">
+            <textarea id="conversation-message-input" data-i18n-placeholder="sendPlaceholder"
+              placeholder="Skriv en melding..." rows="1"></textarea>
+
+            <button id="conversation-send-btn" class="conversation-send-btn is-idle" type="button" aria-label="Send">
+              <span class="send-idle-icon" aria-hidden="true">
+                <span></span>
+                <span></span>
+                <span></span>
+                <span></span>
+                <span></span>
+              </span>
+
+              <span class="send-arrow" aria-hidden="true">
+                <svg viewBox="0 0 24 24">
+                  <path d="M12 18.5V5.5"></path>
+                  <path d="M7.2 10.3L12 5.5L16.8 10.3"></path>
+                </svg>
+              </span>
+
+              <span class="send-stop" aria-hidden="true"></span>
+            </button>
+          </section>
+
+          <p class="composer-disclaimer" data-i18n="composerDisclaimer">
+            Flag Navigator kan gjøre feil.
+          </p>
+        </div>
+      </div>
+    </div>
   </main>
 
   <script src="js/data.js"></script>
+  <script src="js/language.js"></script>
   <script src="js/cases.js"></script>
   <script src="js/app.js"></script>
-
 </body>
 
 </html>

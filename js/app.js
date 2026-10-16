@@ -1,339 +1,1110 @@
-let selectedFlagIds = JSON.parse(localStorage.getItem("selectedFlagIds")) || [];
+let selectedFlagIds =
+    JSON.parse(
+        localStorage.getItem(
+            "selectedFlagIds"
+        )
+    ) || [];
 
-const flagList = document.getElementById("flag-list");
-const searchInput = document.getElementById("search");
-const categoryFilter = document.getElementById("category-filter");
-const scoreElement = document.getElementById("score");
-const resultCard = document.getElementById("result-card");
+let activeFlagCategory = null;
+let isAiLoading = false;
+let currentAbortController = null;
 
-const greenCount = document.getElementById("green-count");
-const yellowCount = document.getElementById("yellow-count");
-const redCount = document.getElementById("red-count");
-const ickCount = document.getElementById("ick-count");
-const minimumCount = document.getElementById("minimum-count");
+const conversationMessages =
+    document.getElementById(
+        "caseEvents"
+    );
 
-const clearButton = document.getElementById("clear-btn");
-const customBehaviorInput = document.getElementById("custom-behavior");
-const customAnalyzeButton = document.getElementById("custom-analyze-btn");
+const scrollToBottomButton =
+    document.getElementById(
+        "scrollToBottomBtn"
+    );
 
-const contextSelect = document.getElementById("context");
-const personSelect = document.getElementById("person");
+const homeView =
+    document.getElementById(
+        "homeView"
+    );
 
-function getCategoryLabel(category) {
-    if (category === "green") return "Green flag";
-    if (category === "yellow") return "Yellow flag";
-    if (category === "red") return "Red flag";
-    if (category === "ick") return "Ick";
-    if (category === "minimum") return "Bare minimum";
-    return category;
+const conversationView =
+    document.getElementById(
+        "conversationView"
+    );
+
+const customBehaviorInput =
+    document.getElementById(
+        "custom-behavior"
+    );
+
+const customAnalyzeButton =
+    document.getElementById(
+        "custom-analyze-btn"
+    );
+
+const conversationMessageInput =
+    document.getElementById(
+        "conversation-message-input"
+    );
+
+const conversationSendButton =
+    document.getElementById(
+        "conversation-send-btn"
+    );
+
+const backToHomeButton =
+    document.getElementById(
+        "backToHomeButton"
+    );
+
+const contextSelect =
+    document.getElementById(
+        "context"
+    );
+
+const personSelect =
+    document.getElementById(
+        "person"
+    );
+
+const flagList =
+    document.getElementById(
+        "flag-list"
+    );
+
+const searchInput =
+    document.getElementById(
+        "search"
+    );
+
+const categoryFilter =
+    document.getElementById(
+        "category-filter"
+    );
+
+const clearButton =
+    document.getElementById(
+        "clear-btn"
+    );
+
+function tr(key) {
+    return typeof window.t ===
+        "function"
+        ? window.t(key)
+        : key;
 }
 
-function getSelectedFlags() {
-    return flagData.filter((flag) => selectedFlagIds.includes(flag.id));
+function isConversationNearBottom() {
+    const scrollPosition =
+        window.scrollY +
+        window.innerHeight;
+
+    const pageHeight =
+        document.documentElement.scrollHeight;
+
+    return (
+        pageHeight -
+        scrollPosition <
+        100
+    );
+}
+
+function updateScrollToBottomButton() {
+    if (!scrollToBottomButton) {
+        return;
+    }
+
+    const hasScrollableContent =
+        document.documentElement.scrollHeight >
+        window.innerHeight + 100;
+
+    const shouldShow =
+        hasScrollableContent &&
+        !isConversationNearBottom() &&
+        !conversationView.classList.contains("hidden");
+
+    scrollToBottomButton.classList.toggle(
+        "visible",
+        shouldShow
+    );
+}
+
+function scrollConversationToBottom(
+    smooth = true
+) {
+    window.scrollTo({
+        top:
+            document.documentElement.scrollHeight,
+        behavior:
+            smooth
+                ? "smooth"
+                : "auto"
+    });
+}
+
+function showHomeView() {
+    homeView?.classList.remove(
+        "hidden"
+    );
+
+    conversationView?.classList.add(
+        "hidden"
+    );
+
+    document.body.classList.remove(
+        "conversation-open"
+    );
+
+    window.scrollTo(
+        0,
+        0
+    );
+}
+
+function showConversationView() {
+    homeView?.classList.add(
+        "hidden"
+    );
+
+    conversationView?.classList.remove(
+        "hidden"
+    );
+
+    document.body.classList.add(
+        "conversation-open"
+    );
+
+    renderCurrentConversation();
+
+    requestAnimationFrame(
+        () => {
+            conversationMessageInput
+                ?.focus();
+
+            autoResizeConversationInput();
+            updateSendButtonState();
+            updateScrollToBottomButton();
+        }
+    );
+}
+
+function applyConversationTheme(
+    theme
+) {
+    const themeClasses = [
+        "theme-red",
+        "theme-green",
+        "theme-yellow",
+        "theme-ick",
+        "theme-minimum",
+        "theme-princess"
+    ];
+
+    document.body.classList.remove(
+        ...themeClasses
+    );
+
+    if (
+        !theme ||
+        theme === "default"
+    ) {
+        return;
+    }
+
+    const themeClass =
+        `theme-${theme}`;
+
+    if (
+        themeClasses.includes(
+            themeClass
+        )
+    ) {
+        document.body.classList.add(
+            themeClass
+        );
+    }
+}
+
+function getCategoryLabel(
+    category
+) {
+    const labels = {
+        green: tr("green"),
+        yellow: tr("yellow"),
+        red: tr("red"),
+        ick: tr("icks"),
+        minimum:
+            tr("bareMinimum"),
+        princess:
+            tr("princessTreatment")
+    };
+
+    return labels[category] ||
+        category;
 }
 
 function saveSelectedFlags() {
-    localStorage.setItem("selectedFlagIds", JSON.stringify(selectedFlagIds));
+    localStorage.setItem(
+        "selectedFlagIds",
+        JSON.stringify(
+            selectedFlagIds
+        )
+    );
 }
 
 function toggleFlag(id) {
-    if (selectedFlagIds.includes(id)) {
-        selectedFlagIds = selectedFlagIds.filter((flagId) => flagId !== id);
+    if (
+        selectedFlagIds.includes(id)
+    ) {
+        selectedFlagIds =
+            selectedFlagIds.filter(
+                flagId =>
+                    flagId !== id
+            );
     } else {
         selectedFlagIds.push(id);
     }
 
     saveSelectedFlags();
     renderFlags();
-    updateResult();
 }
 
-function renderFlags() {
-    const searchText = searchInput.value.toLowerCase();
-    const selectedCategory = categoryFilter.value;
+function showFlagCategory(
+    category
+) {
+    const content =
+        document.getElementById(
+            "selectedFlagContent"
+        );
 
-    let filteredFlags = flagData.filter((flag) => {
-        const matchesSearch =
-            flag.title.toLowerCase().includes(searchText) ||
-            flag.description.toLowerCase().includes(searchText) ||
-            flag.themes.join(" ").toLowerCase().includes(searchText);
+    const title =
+        document.getElementById(
+            "selectedFlagTitle"
+        );
 
-        const matchesCategory =
-            selectedCategory === "all" || flag.category === selectedCategory;
-
-        return matchesSearch && matchesCategory;
-    });
-
-    const categoryOrder = {
-        green: 1,
-        minimum: 2,
-        yellow: 3,
-        ick: 4,
-        red: 5
-    };
-
-    filteredFlags.sort((a, b) => {
-        return categoryOrder[a.category] - categoryOrder[b.category];
-    });
-
-    flagList.innerHTML = "";
-
-    if (filteredFlags.length === 0) {
-        flagList.innerHTML = '<p class="empty-message">Ingen handlinger funnet.</p>';
+    if (
+        !content ||
+        !title ||
+        !categoryFilter
+    ) {
         return;
     }
 
-    filteredFlags.forEach((flag) => {
-        const isSelected = selectedFlagIds.includes(flag.id);
+    if (
+        activeFlagCategory === category
+    ) {
+        activeFlagCategory = null;
+        content.style.display =
+            "none";
 
-        const card = document.createElement("div");
-        card.className = `flag-card ${flag.category} ${isSelected ? "selected" : ""}`;
+        return;
+    }
 
-        card.innerHTML = `
-      <div class="flag-card-header">
-        <div>
-          <h3>${flag.title}</h3>
-          <span class="category-badge ${flag.category}">
-            ${getCategoryLabel(flag.category)}
-          </span>
-        </div>
+    activeFlagCategory =
+        category;
 
-        <button class="select-btn ${isSelected ? "selected-btn" : ""}">
-          ${isSelected ? "Valgt" : "Velg"}
-        </button>
-      </div>
+    categoryFilter.value =
+        category;
 
-      <p>${flag.description}</p>
+    const titles = {
+        green: "Green Flags",
+        yellow: "Yellow Flags",
+        red: "Red Flags",
+        ick: "Icks",
+        minimum: "Bare Minimum"
+    };
 
-      <div class="flag-meta">
-        <span>Score: ${flag.score}</span>
-        <span>${flag.severity}</span>
-      </div>
-    `;
+    title.textContent =
+        titles[category] ||
+        "Flags";
 
-        card.querySelector(".select-btn").addEventListener("click", async () => {
+    renderFlags();
 
-            toggleFlag(flag.id);
+    content.style.display =
+        "block";
 
-            customBehaviorInput.value = flag.description;
+    content.scrollIntoView({
+        behavior: "smooth",
+        block: "start"
+    });
+}
 
-            await analyzeCustomText();
+function renderFlags() {
+    if (
+        !flagList ||
+        !searchInput ||
+        !categoryFilter ||
+        typeof flagData === "undefined"
+    ) {
+        return;
+    }
 
+    const searchText =
+        searchInput.value
+            .trim()
+            .toLowerCase();
+
+    const selectedCategory =
+        categoryFilter.value;
+
+    const filteredFlags =
+        flagData.filter(flag => {
+            const themes =
+                Array.isArray(
+                    flag.themes
+                )
+                    ? flag.themes
+                        .join(" ")
+                    : "";
+
+            const matchesSearch =
+                String(
+                    flag.title || ""
+                )
+                    .toLowerCase()
+                    .includes(
+                        searchText
+                    ) ||
+                String(
+                    flag.description ||
+                    ""
+                )
+                    .toLowerCase()
+                    .includes(
+                        searchText
+                    ) ||
+                themes
+                    .toLowerCase()
+                    .includes(
+                        searchText
+                    );
+
+            const matchesCategory =
+                selectedCategory ===
+                "all" ||
+                flag.category ===
+                selectedCategory;
+
+            return (
+                matchesSearch &&
+                matchesCategory
+            );
         });
+
+    flagList.innerHTML = "";
+
+    if (
+        filteredFlags.length === 0
+    ) {
+        const empty =
+            document.createElement(
+                "p"
+            );
+
+        empty.className =
+            "empty-message";
+
+        empty.textContent =
+            tr("noBehaviors");
+
+        flagList.appendChild(empty);
+        return;
+    }
+
+    filteredFlags.forEach(flag => {
+        const isSelected =
+            selectedFlagIds.includes(
+                flag.id
+            );
+
+        const card =
+            document.createElement(
+                "div"
+            );
+
+        card.className =
+            `flag-card ${flag.category}${isSelected ? " selected" : ""}`;
+
+        const header =
+            document.createElement(
+                "div"
+            );
+
+        header.className =
+            "flag-card-header";
+
+        const left =
+            document.createElement(
+                "div"
+            );
+
+        const heading =
+            document.createElement(
+                "h3"
+            );
+
+        heading.textContent =
+            flag.title;
+
+        const badge =
+            document.createElement(
+                "span"
+            );
+
+        badge.className =
+            `category-badge ${flag.category}`;
+
+        badge.textContent =
+            getCategoryLabel(
+                flag.category
+            );
+
+        left.appendChild(heading);
+        left.appendChild(badge);
+
+        const selectButton =
+            document.createElement(
+                "button"
+            );
+
+        selectButton.className =
+            `select-btn${isSelected ? " selected-btn" : ""}`;
+
+        selectButton.textContent =
+            isSelected
+                ? tr("selected")
+                : tr("select");
+
+        selectButton.addEventListener(
+            "click",
+            event => {
+                event.stopPropagation();
+                toggleFlag(flag.id);
+            }
+        );
+
+        header.appendChild(left);
+        header.appendChild(
+            selectButton
+        );
+
+        const description =
+            document.createElement(
+                "p"
+            );
+
+        description.textContent =
+            flag.description;
+
+        const meta =
+            document.createElement(
+                "div"
+            );
+
+        meta.className =
+            "flag-meta";
+
+        const score =
+            document.createElement(
+                "span"
+            );
+
+        score.textContent =
+            `Score: ${flag.score}`;
+
+        const severity =
+            document.createElement(
+                "span"
+            );
+
+        severity.textContent =
+            flag.severity;
+
+        meta.appendChild(score);
+        meta.appendChild(severity);
+
+        card.appendChild(header);
+        card.appendChild(
+            description
+        );
+        card.appendChild(meta);
 
         flagList.appendChild(card);
     });
 }
 
-function countCategories(flags) {
-    return {
-        green: flags.filter((flag) => flag.category === "green").length,
-        yellow: flags.filter((flag) => flag.category === "yellow").length,
-        red: flags.filter((flag) => flag.category === "red").length,
-        ick: flags.filter((flag) => flag.category === "ick").length,
-        minimum: flags.filter((flag) => flag.category === "minimum").length
-    };
+function clearSelections() {
+    selectedFlagIds = [];
+    saveSelectedFlags();
+    renderFlags();
 }
 
-function getContextText() {
-    const context = contextSelect.value;
-
-    if (context === "casual") {
-        return "I casual dating kan forventninger være ulike, men respekt, tydelige grenser og trygghet er fortsatt viktig.";
+function getLanguageInstruction() {
+    if (
+        typeof window.getCurrentLanguage ===
+        "function" &&
+        window.getCurrentLanguage() ===
+        "en"
+    ) {
+        return "Respond in English.";
     }
 
-    if (context === "situationship") {
-        return "I en situationship kan uklarhet være vanlig, men gjentatte mixed signals eller press kan likevel være verdt å følge med på.";
-    }
-
-    if (context === "relationship") {
-        return "I et forhold blir mønster over tid ekstra viktig, spesielt rundt kommunikasjon, respekt og grenser.";
-    }
-
-    if (context === "talking") {
-        return "I talking stage kan mye fortsatt være uklart, men handlinger som kontroll, press eller utrygghet bør tas seriøst.";
-    }
-
-    if (context === "friendship") {
-        return "I vennskap handler dette også om respekt, trygghet, grenser og gjensidig innsats.";
-    }
-
-    return "I dating er det lurt å se på både enkeltstående handlinger og mønster over tid.";
+    return "Svar på norsk.";
 }
 
-function analyzeFlags(flags) {
-    const totalScore = flags.reduce((sum, flag) => sum + flag.score, 0);
-    const counts = countCategories(flags);
-    const hasSeriousRedFlag = flags.some(
-        (flag) => flag.category === "red" && flag.severityLevel >= 5
-    );
+function buildConversationContextForAi(
+    conversation,
+    newText
+) {
+    const languageInstruction =
+        getLanguageInstruction();
 
-    let title = "";
-    let explanation = "";
-    let advice = "";
-
-    if (flags.length === 0) {
-        return {
-            totalScore: 0,
-            counts,
-            title: "Ingen handlinger valgt",
-            explanation: "Velg noen handlinger eller skriv inn en egen situasjon for å få en vurdering.",
-            advice: ""
-        };
+    if (
+        !conversation ||
+        conversation.messages.length ===
+        0
+    ) {
+        return `${languageInstruction}\n\n${newText}`;
     }
 
-    if (hasSeriousRedFlag || totalScore >= 8) {
-        title = "Flere alvorlige varselsignaler";
-        explanation =
-            "Valgene dine inneholder ett eller flere tegn som handler om kontroll, press, frykt eller manglende respekt for grenser.";
-        advice =
-            "Dette er ikke en fasit, men det kan være lurt å ta mønsteret på alvor og snakke med noen du stoler på hvis du føler deg utrygg.";
-    } else if (totalScore >= 4) {
-        title = "Bør følges med på";
-        explanation =
-            "Resultatet tyder på flere yellow/red signals. Det trenger ikke bety at alt er galt, men mønsteret kan skape usikkerhet.";
-        advice =
-            "Se om dette skjer ofte, og om personen klarer å kommunisere tydelig og respektere grenser.";
-    } else if (totalScore >= 1) {
-        title = "Litt usikkert";
-        explanation =
-            "Valgene dine virker ikke nødvendigvis veldig alvorlige alene, men noen av dem kan bli problematiske hvis de skjer ofte.";
-        advice =
-            "Legg merke til om det er enkeltstående handlinger eller et gjentatt mønster.";
-    } else if (counts.minimum > 0 && counts.green === 0 && counts.yellow === 0 && counts.red === 0 && counts.ick === 0) {
-        title = "Dette er mest bare minimum";
-        explanation =
-            "Handlingene du har valgt er positive, men de handler mest om grunnleggende respekt og normal oppførsel.";
-        advice =
-            "Bare minimum er bra, men det bør ikke forveksles med ekstra innsats eller sterke green flags.";
-    } else if (totalScore <= -2 && counts.red === 0 && counts.yellow === 0) {
-        title = "Mest positive tegn";
-        explanation =
-            "Valgene dine peker mest mot trygghet, omtanke, respekt eller tydelig kommunikasjon.";
-        advice =
-            "Dette kan være gode tegn, spesielt hvis handlingene er stabile over tid og ikke føles pressende.";
-    } else {
-        title = "Blandet vurdering";
-        explanation =
-            "Resultatet er blandet. Noen tegn kan være positive, mens andre bør vurderes ut fra kontekst og mønster.";
-        advice =
-            "Se på helheten, ikke bare én handling alene.";
+    const history =
+        conversation.messages
+            .map(message => {
+                const role =
+                    message.role ===
+                        "user"
+                        ? "Bruker"
+                        : "Tidligere analyse";
+
+                return `${role}: ${message.text}`;
+            })
+            .join("\n\n");
+
+    return `
+${languageInstruction}
+
+Dette er en pågående samtale om samme person og situasjon.
+
+Tidligere samtale:
+${history}
+
+Ny melding fra bruker:
+${newText}
+
+Analyser den nye meldingen i sammenheng med hele den tidligere samtalen.
+    `.trim();
+}
+
+function createAiMessage(
+    analysis
+) {
+    const category =
+        getDisplayCategory(
+            analysis
+        );
+
+    let text =
+        `${analysis.label || "Analyse"}`;
+
+    text +=
+        `\n\n${tr("category")}: ${getCategoryLabel(category)}`;
+
+    if (analysis.severity) {
+        text +=
+            `\n${tr("severity")}: ${analysis.severity}`;
     }
 
-    return {
-        totalScore,
-        counts,
-        title,
-        explanation,
-        advice
-    };
+    if (analysis.explanation) {
+        text +=
+            `\n\n${analysis.explanation}`;
+    }
+
+    if (analysis.advice) {
+        text +=
+            `\n\n${tr("whatToWatch")}:\n${analysis.advice}`;
+    }
+
+    return text.trim();
 }
 
-function updateResult() {
-    const selectedFlags = getSelectedFlags();
-    const analysis = analyzeFlags(selectedFlags);
+async function requestAiAnalysis(
+    text,
+    context,
+    person,
+    signal
+) {
+    const response =
+        await fetch(
+            "http://localhost:8080/api/local-ai-analyze",
+            {
+                method: "POST",
+                headers: {
+                    "Content-Type":
+                        "application/json"
+                },
+                body:
+                    JSON.stringify({
+                        text: text,
+                        context: context,
+                        person: person
+                    }),
+                signal: signal
+            }
+        );
 
-    scoreElement.textContent = analysis.totalScore;
+    if (!response.ok) {
+        throw new Error(
+            `HTTP ${response.status}`
+        );
+    }
 
-    greenCount.textContent = analysis.counts.green;
-    yellowCount.textContent = analysis.counts.yellow;
-    redCount.textContent = analysis.counts.red;
-    ickCount.textContent = analysis.counts.ick;
-    minimumCount.textContent = analysis.counts.minimum;
-
-    resultCard.innerHTML = `
-    <h3>${analysis.title}</h3>
-    <p>${analysis.explanation}</p>
-    ${analysis.advice ? `<p><strong>Hva du kan følge med på:</strong> ${analysis.advice}</p>` : ""}
-    ${selectedFlags.length > 0 ? `<p class="context-note">${getContextText()}</p>` : ""}
-  `;
+    return await response.json();
 }
 
-async function analyzeCustomText() {
-    const text = customBehaviorInput.value.trim();
-
-    if (!text) {
-        resultCard.innerHTML = `
-      <h3>Skriv inn en situasjon først</h3>
-      <p>Du må skrive noe i tekstfeltet før nettsiden kan gjøre en vurdering.</p>
-    `;
+function updateSendButtonState() {
+    if (
+        !conversationSendButton ||
+        !conversationMessageInput
+    ) {
         return;
     }
 
-    resultCard.innerHTML = `
-    <h3>Analyserer...</h3>
-    <p>Backend vurderer situasjonen din.</p>
-  `;
+    conversationSendButton
+        .classList
+        .remove(
+            "is-idle",
+            "is-ready",
+            "is-loading"
+        );
 
-    scoreElement.textContent = "...";
-    customAnalyzeButton.disabled = true;
-    customAnalyzeButton.textContent = "Analyserer...";
+    if (isAiLoading) {
+        conversationSendButton
+            .classList
+            .add("is-loading");
 
-    const requestBody = {
-        text: text,
-        context: contextSelect.value,
-        person: personSelect.value
-    };
+        conversationSendButton
+            .setAttribute(
+                "aria-label",
+                "Stop"
+            );
+
+        return;
+    }
+
+    const hasText =
+        conversationMessageInput
+            .value
+            .trim()
+            .length > 0;
+
+    conversationSendButton
+        .classList
+        .add(
+            hasText
+                ? "is-ready"
+                : "is-idle"
+        );
+
+    conversationSendButton
+        .setAttribute(
+            "aria-label",
+            hasText
+                ? "Send"
+                : "Empty"
+        );
+}
+
+function setAiLoading(
+    loading
+) {
+    isAiLoading = loading;
+    updateSendButtonState();
+}
+
+function addThinkingHeart() {
+    const container =
+        document.getElementById(
+            "caseEvents"
+        );
+
+    if (!container) {
+        return;
+    }
+
+    removeThinkingHeart();
+
+    const thinking =
+        document.createElement(
+            "div"
+        );
+
+    thinking.id =
+        "thinkingMessage";
+
+    thinking.className =
+        "thinking-message";
+
+    thinking.innerHTML = `
+        <svg class="thinking-heart" viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M12 21C10.8 19.9 4 15.7 4 9.6C4 6.7 5.8 4.8 8.4 4.8C10 4.8 11.3 5.7 12 6.9C12.7 5.7 14 4.8 15.6 4.8C18.2 4.8 20 6.7 20 9.6C20 15.7 13.2 19.9 12 21Z"></path>
+        </svg>
+    `;
+
+    container.appendChild(
+        thinking
+    );
+
+    scrollConversationToBottom(
+        true
+    );
+}
+
+function removeThinkingHeart() {
+    document
+        .getElementById(
+            "thinkingMessage"
+        )
+        ?.remove();
+}
+
+function stopCurrentRequest() {
+    if (currentAbortController) {
+        currentAbortController.abort();
+        currentAbortController = null;
+    }
+
+    removeThinkingHeart();
+    setAiLoading(false);
+}
+
+async function analyzeHomeText() {
+    if (
+        !customBehaviorInput ||
+        !contextSelect ||
+        !personSelect
+    ) {
+        return;
+    }
+
+    const text =
+        customBehaviorInput.value
+            .trim();
+
+    if (!text) {
+        return;
+    }
+
+    const context =
+        contextSelect.value;
+
+    const person =
+        personSelect.value;
+
+    createConversation(
+        context,
+        person
+    );
+
+    addMessageToCurrentConversation(
+        "user",
+        text
+    );
+
+    customBehaviorInput.value = "";
+
+    showConversationView();
+
+    customAnalyzeButton.disabled =
+        true;
+
+    setAiLoading(true);
+    addThinkingHeart();
+
+    currentAbortController =
+        new AbortController();
 
     try {
-        const response = await fetch("http://localhost:8080/api/local-ai-analyze", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify(requestBody)
-        });
+        const requestText =
+            `${getLanguageInstruction()}\n\n${text}`;
 
-        if (!response.ok) {
-            throw new Error("Backend svarte med en feil.");
-        }
+        const analysis =
+            await requestAiAnalysis(
+                requestText,
+                context,
+                person,
+                currentAbortController
+                    .signal
+            );
 
-        const analysis = await response.json();
+        analysis.matchedThemes =
+            Array.isArray(
+                analysis.matchedThemes
+            )
+                ? analysis.matchedThemes
+                : [];
 
-        scoreElement.textContent = analysis.score;
+        removeThinkingHeart();
 
-        greenCount.textContent = analysis.category === "green" ? 1 : 0;
-        yellowCount.textContent = analysis.category === "yellow" ? 1 : 0;
-        redCount.textContent = analysis.category === "red" ? 1 : 0;
-        ickCount.textContent = analysis.category === "ick" ? 1 : 0;
-        minimumCount.textContent = analysis.category === "minimum" ? 1 : 0;
+        setConversationTitleFromAnalysis(
+            analysis
+        );
 
-        resultCard.innerHTML = `
-      <h3>${analysis.label}</h3>
-      <p><strong>Kategori:</strong> ${analysis.category}</p>
-      <p><strong>Alvorlighet:</strong> ${analysis.severity}</p>
-      <p>${analysis.explanation}</p>
-      <p><strong>Hva du kan følge med på:</strong> ${analysis.advice}</p>
-      <p><strong>Matchet tema:</strong> ${analysis.matchedThemes.join(", ") || "Ingen tydelig match"}</p>
-      <p class="ai-note">Dette resultatet er analysert lokalt med Ollama AI.</p>`;
+        const overall =
+            addAnalysisToCurrentConversation(
+                analysis
+            );
+
+        const aiMessage =
+            createAiMessage(
+                analysis
+            );
+
+        addMessageToCurrentConversation(
+            "assistant",
+            aiMessage
+        );
+
+        applyConversationTheme(
+            overall.theme
+        );
+
+        renderCurrentConversation();
     } catch (error) {
-        scoreElement.textContent = "0";
+        removeThinkingHeart();
 
-        resultCard.innerHTML = `
-      <h3>Kunne ikke koble til backend</h3>
-      <p>Sjekk at Spring Boot kjører på http://localhost:8080.</p>
-      <p class="ai-note">${error.message}</p>
-    `;
+        if (
+            error.name !==
+            "AbortError"
+        ) {
+            addMessageToCurrentConversation(
+                "assistant",
+                tr("connectionError")
+            );
+        }
     } finally {
-        customAnalyzeButton.disabled = false;
-        customAnalyzeButton.textContent = "Analyser tekst";
+        currentAbortController =
+            null;
+
+        customAnalyzeButton.disabled =
+            false;
+
+        setAiLoading(false);
     }
 }
 
-function clearSelections() {
-    selectedFlagIds = [];
-    customBehaviorInput.value = "";
-    saveSelectedFlags();
-    renderFlags();
-    updateResult();
+async function sendConversationMessage() {
+    const conversation =
+        getCurrentConversation();
+
+    if (!conversation) {
+        showHomeView();
+        return;
+    }
+
+    if (isAiLoading) {
+        stopCurrentRequest();
+        return;
+    }
+
+    const text =
+        conversationMessageInput
+            ?.value
+            .trim();
+
+    if (!text) {
+        return;
+    }
+
+    const context =
+        conversation.context;
+
+    const person =
+        conversation.person;
+
+    const aiText =
+        buildConversationContextForAi(
+            conversation,
+            text
+        );
+
+    addMessageToCurrentConversation(
+        "user",
+        text
+    );
+
+    conversationMessageInput.value =
+        "";
+
+    autoResizeConversationInput();
+    updateSendButtonState();
+
+    setAiLoading(true);
+    addThinkingHeart();
+
+    currentAbortController =
+        new AbortController();
+
+    try {
+        const analysis =
+            await requestAiAnalysis(
+                aiText,
+                context,
+                person,
+                currentAbortController
+                    .signal
+            );
+
+        analysis.matchedThemes =
+            Array.isArray(
+                analysis.matchedThemes
+            )
+                ? analysis.matchedThemes
+                : [];
+
+        removeThinkingHeart();
+
+        const overall =
+            addAnalysisToCurrentConversation(
+                analysis
+            );
+
+        const aiMessage =
+            createAiMessage(
+                analysis
+            );
+
+        addMessageToCurrentConversation(
+            "assistant",
+            aiMessage
+        );
+
+        applyConversationTheme(
+            overall.theme
+        );
+
+        renderCurrentConversation();
+    } catch (error) {
+        removeThinkingHeart();
+
+        if (
+            error.name !==
+            "AbortError"
+        ) {
+            addMessageToCurrentConversation(
+                "assistant",
+                tr("connectionError")
+            );
+        }
+    } finally {
+        currentAbortController =
+            null;
+
+        setAiLoading(false);
+
+        conversationMessageInput
+            ?.focus();
+    }
 }
 
-searchInput.addEventListener("input", renderFlags);
-categoryFilter.addEventListener("change", renderFlags);
-clearButton.addEventListener("click", clearSelections);
-customAnalyzeButton.addEventListener("click", analyzeCustomText);
-contextSelect.addEventListener("change", updateResult);
-personSelect.addEventListener("change", updateResult);
+function autoResizeConversationInput() {
+    if (!conversationMessageInput) {
+        return;
+    }
+
+    conversationMessageInput
+        .style.height = "auto";
+
+    const height =
+        Math.min(
+            conversationMessageInput
+                .scrollHeight,
+            150
+        );
+
+    conversationMessageInput
+        .style.height =
+        `${height}px`;
+}
+
+customAnalyzeButton
+    ?.addEventListener(
+        "click",
+        analyzeHomeText
+    );
+
+conversationSendButton
+    ?.addEventListener(
+        "click",
+        sendConversationMessage
+    );
+
+backToHomeButton
+    ?.addEventListener(
+        "click",
+        showHomeView
+    );
+
+conversationMessageInput
+    ?.addEventListener(
+        "input",
+        () => {
+            autoResizeConversationInput();
+            updateSendButtonState();
+        }
+    );
+
+conversationMessageInput
+    ?.addEventListener(
+        "keydown",
+        event => {
+            if (
+                event.key ===
+                "Enter" &&
+                !event.shiftKey
+            ) {
+                event.preventDefault();
+                sendConversationMessage();
+            }
+        }
+    );
+
+searchInput
+    ?.addEventListener(
+        "input",
+        renderFlags
+    );
+
+categoryFilter
+    ?.addEventListener(
+        "change",
+        renderFlags
+    );
+
+clearButton
+    ?.addEventListener(
+        "click",
+        clearSelections
+    );
+
+scrollToBottomButton
+    ?.addEventListener(
+        "click",
+        () => {
+            scrollConversationToBottom(
+                true
+            );
+        }
+    );
+
+window.addEventListener(
+    "resize",
+    () => {
+        updateScrollToBottomButton();
+        autoResizeConversationInput();
+    }
+);
+
+window.addEventListener(
+    "scroll",
+    updateScrollToBottomButton
+);
 
 renderFlags();
-updateResult();
+updateSendButtonState();
