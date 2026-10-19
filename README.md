@@ -27,7 +27,7 @@ The application also includes an optional OpenAI integration.
 
 ```text
 VIDEO LINK:
-https://your-video-link-here
+
 ```
 
 A future demo video will show:
