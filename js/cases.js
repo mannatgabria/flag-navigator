@@ -967,7 +967,7 @@ function renderCurrentConversation() {
     order.forEach(category => {
         const amount =
             overall.counts[
-                category
+            category
             ];
 
         if (amount <= 0) {

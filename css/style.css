@@ -1158,18 +1158,18 @@ textarea {
     left: 12px;
   }
 
-.conversation-page-container {
-  width: 100%;
-  padding: 8px 8px 165px;
-}
+  .conversation-page-container {
+    width: 100%;
+    padding: 8px 8px 165px;
+  }
 
-.conversation-bottom {
-  padding: 10px 0 6px;
-}
+  .conversation-bottom {
+    padding: 10px 0 6px;
+  }
 
-.conversation-bottom::before {
-  height: 130px;
-}
+  .conversation-bottom::before {
+    height: 130px;
+  }
 
   .conversation-top {
     position: relative;
@@ -1208,10 +1208,10 @@ textarea {
     font-size: 20px;
   }
 
-.conversation-messages {
-  gap: 22px;
-  padding: 18px 10px 24px;
-}
+  .conversation-messages {
+    gap: 22px;
+    padding: 18px 10px 24px;
+  }
 
   .chat-message {
     font-size: 15px;
@@ -1228,14 +1228,14 @@ textarea {
   }
 
   .conversation-composer-wrapper {
-  width: calc(100% - 20px);
-}
+    width: calc(100% - 20px);
+  }
 
   .conversation-composer {
-  min-height: 58px;
-  padding: 6px 7px 6px 16px;
-  border-radius: 29px;
-}
+    min-height: 58px;
+    padding: 6px 7px 6px 16px;
+    border-radius: 29px;
+  }
 
   .conversation-composer textarea {
     min-height: 44px;
